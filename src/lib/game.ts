@@ -76,7 +76,7 @@ export class Session {
 		this.curr_player = this.dealer_player;
 		this.curr_passed = new Array(MAX_PLAYERS).fill(false);
 		this.curr_hands = Array.from(Array(MAX_PLAYERS), () => new Array());
-		this.curr_scores = new Array(Math.floor(MAX_PLAYERS / 2)).fill(0);
+		this.curr_scores = new Array(TEAMS).fill(0);
 		this.bids = new Array();
 		this.tricks = new Array();
 	}
@@ -132,7 +132,7 @@ export class Session {
 			console.error('Attempted to bid out of turn.');
 			return;
 		}
-		if (bid < Bid.Pass || bid > Bid.Six) {
+		if (bid != Bid.Pass && bid < Bid.Two && bid > Bid.Six) {
 			console.error(`Attempted to bid an invalid number: ${bid.toString()}.`);
 			return;
 		}
@@ -191,7 +191,6 @@ export class Session {
 			this.tricks.push(new Array());
 		}
 		let curr_trick = this.tricks[this.tricks.length - 1];
-
 		curr_trick.push([this.curr_player, hand[card_id]]);
 		hand.splice(card_id, 1);
 
