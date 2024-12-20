@@ -59,8 +59,8 @@ export enum Bid {
 	Six = 6
 }
 export enum Result {
-	Ok,
 	Err,
+	Ok,
 }
 export class SessionResponse {
 	result: Result;
@@ -381,4 +381,51 @@ export class Session {
 	_has_joker(pile: Card[]): boolean {
 		return pile.some((card, _idx, _arr) => card.suit == Suit.Joker);
 	}
+
+	summary(): SessionSummary {
+    return new SessionSummary(
+      this.state,
+      this.players,
+      this.dealer_player,
+      this.curr_player,
+      this.curr_passed,
+      this.curr_hands,
+      this.curr_scores,
+      this.bids,
+      this.tricks
+    );
+  }
+}
+
+export class SessionSummary {
+	state: SessionState;
+	players: PlayerId[];
+	dealer_player: SessionPlayer;
+	curr_player: SessionPlayer;
+	curr_passed: boolean[];
+	curr_hands: Card[][];
+	curr_scores: number[];
+	bids: [SessionPlayer, Bid][];
+	tricks: [SessionPlayer, Card][][];
+	constructor(
+    state: SessionState = {} as SessionState,
+    players: PlayerId[] = [],
+    dealer_player: SessionPlayer = {} as SessionPlayer,
+    curr_player: SessionPlayer = {} as SessionPlayer,
+    curr_passed: boolean[] = [],
+    curr_hands: Card[][] = [],
+    curr_scores: number[] = [],
+    bids: [SessionPlayer, Bid][] = [],
+    tricks: [SessionPlayer, Card][][] = []
+  ) {
+    this.state = state;
+    this.players = players;
+    this.dealer_player = dealer_player;
+    this.curr_player = curr_player;
+    this.curr_passed = curr_passed;
+    this.curr_hands = curr_hands;
+    this.curr_scores = curr_scores;
+    this.bids = bids;
+    this.tricks = tricks;
+  }
 }

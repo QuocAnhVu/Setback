@@ -1,27 +1,6 @@
-import type { Actions, ServerLoad } from '@sveltejs/kit';
+import { redirect, type Actions, type ServerLoad } from '@sveltejs/kit';
 import { Session, SessionResponse, Result } from '$lib/game';
-
-const SESSIONS: Session[] = [];
-export const OBSERVABLES: Observable[] = [];
-export class Observable {
-  observers: ((data: any) => void)[];
-  
-  constructor() {
-    this.observers = [];
-  }
-
-  subscribe(func: (data: any) => void) {
-    this.observers.push(func);
-  }
-
-  unsubscribe(func: (data: any) => void) {
-    this.observers = this.observers.filter((observer) => observer !== func);
-  }
-
-  notify(data: Session) {
-    this.observers.forEach((observer) => observer(data));
-  }
-}
+import { Observable, OBSERVABLES, SESSIONS } from '$lib/database';
 
 export const load: ServerLoad = ({ cookies }) => {
   const user = cookies.get('user');
@@ -49,7 +28,7 @@ export const actions = {
     session.join(user);
     SESSIONS.push(session);
     OBSERVABLES.push(new Observable())
-    return { success: true, sessionId };
+    throw redirect(302, `/${sessionId}`);
   },
   join: async ({ cookies, request }) => {
     const user = cookies.get('user');
@@ -72,7 +51,7 @@ export const actions = {
     const response = session.join(user);
     if (response.result == Result.Ok) {
       OBSERVABLES[sessionId].notify(session);
-      return { success: true, sessionId };
+      throw redirect(302, `/${sessionId}`);
     } else {
       return { success: false, msg: response.msg };
     }

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Session } from '$lib/game';
 	let { data, form } = $props();
 </script>
 
