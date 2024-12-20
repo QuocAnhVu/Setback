@@ -154,9 +154,9 @@ export class Session {
 		} while (this.curr_passed[this.curr_player]);
 	}
 	_winning_bid(): [SessionPlayer, Bid] {
-		let [max_player, max_bid] = this.bids[0];
+		let [max_player, max_bid] = [this.dealer_player, Bid.Two];
 		for (const [player, bid] of this.bids.slice(1)) {
-			if (bid > max_bid) {
+			if (bid >= max_bid) {
 				max_bid = bid;
 				max_player = player;
 			}
