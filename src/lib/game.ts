@@ -295,11 +295,15 @@ export class Session {
 				team_score += 1;
 			}
 
-			let multiplier = 1;
-			if (team == bid_team && team_score < bid) {
-				multiplier = -1;
+			if (team == bid_team) {
+			  if (team_score >= bid) {
+			    this.curr_scores[team] += team_score;
+			  } else {
+			    this.curr_scores[team] -= bid;
+			  }
+			} else {
+  			this.curr_scores[team] += team_score;
 			}
-			this.curr_scores[team] += team_score * multiplier;
 		}
 
 		if (this.curr_scores.some((score, _idx, _arr) => score >= 21)) {
