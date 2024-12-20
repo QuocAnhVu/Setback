@@ -302,11 +302,15 @@ export class Session {
 			this.curr_scores[team] += team_score * multiplier;
 		}
 
-		this.curr_passed = new Array(MAX_PLAYERS).fill(false);
-		this.bids = new Array();
-		this.tricks = new Array();
-		this.state = SessionState.Dealing;
-		this.deal();
+		if (this.curr_scores.some((score, _idx, _arr) => score >= 21)) {
+		  this.state = SessionState.Finished;
+		} else {
+  		this.curr_passed = new Array(MAX_PLAYERS).fill(false);
+  		this.bids = new Array();
+  		this.tricks = new Array();
+  		this.state = SessionState.Dealing;
+  		this.deal();
+		}
 	}
 	_min_of_trump(pile: Card[]): Value | null {
 		let trump_suit = this._trump_suit();
