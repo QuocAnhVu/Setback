@@ -2,7 +2,7 @@ const MAX_PLAYERS = 4;
 const TEAMS = Math.floor(MAX_PLAYERS / 2);
 const HAND_SIZE = 6;
 
-export type PlayerId = number;
+export type PlayerId = String;
 
 export enum Suit {
 	Clubs = 0,
@@ -58,6 +58,24 @@ export enum Bid {
 	Five = 5,
 	Six = 6
 }
+export enum Result {
+	Ok,
+	Err,
+}
+export class SessionResponse {
+	result: Result;
+	msg: String | null;
+	constructor(result: Result, msg: String | null) {
+		this.result = result;
+		this.msg = msg;
+	}
+	static ok(): SessionResponse {
+		return new SessionResponse(Result.Ok, null);
+	}
+	static err(msg: String): SessionResponse {
+		return new SessionResponse(Result.Err, msg);
+	}
+}
 
 export class Session {
 	state: SessionState;
@@ -81,10 +99,9 @@ export class Session {
 		this.tricks = new Array();
 	}
 
-	join(playerId: PlayerId) {
+	join(playerId: PlayerId): SessionResponse {
 		if (this.state != SessionState.Joining) {
-			console.error('Attempted to join game out of Joining phase.');
-			return;
+			return SessionResponse.err('Attempted to join game out of Joining phase.');
 		}
 
 		this.players.push(playerId);
@@ -93,12 +110,12 @@ export class Session {
 			this.state = SessionState.Dealing;
 			this.deal();
 		}
+		return SessionResponse.ok();
 	}
 
-	deal() {
+	deal(): SessionResponse {
 		if (this.state != SessionState.Dealing) {
-			console.error('Attempted to deal out of Dealing phase.');
-			return;
+			return SessionResponse.err('Attempted to deal out of Dealing phase.');
 		}
 
 		let deck = [];
@@ -115,6 +132,7 @@ export class Session {
 		}
 
 		this.state = SessionState.Bidding;
+		return SessionResponse.ok();
 	}
 	_shuffle(arr: any[]) {
 		for (let i = 0; i < arr.length - 1; i++) {
@@ -123,22 +141,18 @@ export class Session {
 		}
 	}
 
-	bid(player_id: PlayerId, bid: Bid) {
+	bid(player_id: PlayerId, bid: Bid): SessionResponse {
 		if (this.state != SessionState.Bidding) {
-			console.error('Attempted to bid out of Bidding phase.');
-			return;
+			return SessionResponse.err('Attempted to bid out of Bidding phase.');
 		}
 		if (player_id != this.players[this.curr_player]) {
-			console.error('Attempted to bid out of turn.');
-			return;
+			return SessionResponse.err('Attempted to bid out of turn.');
 		}
 		if (bid != Bid.Pass && bid < Bid.Two && bid > Bid.Six) {
-			console.error(`Attempted to bid an invalid number: ${bid.toString()}.`);
-			return;
+			return SessionResponse.err(`Attempted to bid an invalid number: ${bid.toString()}.`);
 		}
 		if (bid != Bid.Pass && this.bids.length > 0 && bid < this._winning_bid()[1]) {
-			console.error('Attempted to bid below maximum bid.');
-			return;
+			return SessionResponse.err('Attempted to bid below maximum bid.');
 		}
 
 		this.bids.push([this.curr_player, bid]);
@@ -152,6 +166,7 @@ export class Session {
 		do {
 			this.curr_player = (this.curr_player + 1) % MAX_PLAYERS;
 		} while (this.curr_passed[this.curr_player]);
+		return SessionResponse.ok();
 	}
 	_winning_bid(): [SessionPlayer, Bid] {
 		let [max_player, max_bid] = [this.dealer_player, Bid.Two];
@@ -174,17 +189,14 @@ export class Session {
 
 	trick(player_id: PlayerId, card_id: number) {
 		if (this.state != SessionState.Tricking) {
-			console.error('Attempted to trick out of Tricking phase.');
-			return;
+			return SessionResponse.err('Attempted to trick out of Tricking phase.');
 		}
 		if (player_id != this.players[this.curr_player]) {
-			console.error('Attempted to trick out of turn.');
-			return;
+			return SessionResponse.err('Attempted to trick out of turn.');
 		}
 		let hand = this.curr_hands[this.curr_player];
 		if (card_id < 0 || card_id >= hand.length) {
-			console.error('Attempted to trick non-existent card.');
-			return;
+			return SessionResponse.err('Attempted to trick non-existent card.');
 		}
 
 		if (this.tricks.length == 0) {
@@ -249,10 +261,9 @@ export class Session {
 		return a.val > b.val;
 	}
 
-	score() {
+	score(): SessionResponse {
 		if (this.state != SessionState.Scoring) {
-			console.error('Attempted to score out of Scoring phase.');
-			return;
+			return SessionResponse.err('Attempted to score out of Scoring phase.');
 		}
 
 		let piles: Card[][] = Array.from(Array(TEAMS), () => new Array());
@@ -314,6 +325,7 @@ export class Session {
   		this.state = SessionState.Dealing;
   		this.deal();
 		}
+		return SessionResponse.ok();
 	}
 	_min_of_trump(pile: Card[]): Value | null {
 		let trump_suit = this._trump_suit();
