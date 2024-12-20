@@ -86,7 +86,9 @@ export class Session {
 			console.error('Attempted to join game out of Joining phase.');
 			return;
 		}
+
 		this.players.push(playerId);
+
 		if (this.players.length == MAX_PLAYERS) {
 			this.state = SessionState.Dealing;
 			this.deal();
@@ -94,6 +96,11 @@ export class Session {
 	}
 
 	deal() {
+		if (this.state != SessionState.Dealing) {
+			console.error('Attempted to deal out of Dealing phase.');
+			return;
+		}
+
 		let deck = [];
 		for (let suit = Suit.Clubs; suit <= Suit.Hearts; suit++) {
 			for (let val = Value.Two; val <= Value.Ace; val++) {
@@ -244,6 +251,11 @@ export class Session {
 	}
 
 	score() {
+		if (this.state != SessionState.Scoring) {
+			console.error('Attempted to score out of Scoring phase.');
+			return;
+		}
+
 		let piles: Card[][] = Array.from(Array(TEAMS), () => new Array());
 		for (let curr_trick of this.tricks) {
 			let winner = this._winner_of(curr_trick);
